@@ -115,7 +115,7 @@ class Handler:
 
     # ================================================================================================================
 
-    def evaluate(self, dataset, name='valid', device=None):
+    def evaluate(self, dataset, name='valid'):
 
         self.model.eval()
 
@@ -128,8 +128,8 @@ class Handler:
 
         for idx, (inputs, targets) in pbar:
 
-            images = inputs.to(device)
-            labels = targets.to(device)
+            images = inputs.to(self.device)
+            labels = targets.to(self.device)
 
             logits, (loss, aux_loss) = self.model(images, labels)
             loss = loss + self.alpha * aux_loss
@@ -148,7 +148,7 @@ class Handler:
 
     # ================================================================================================================
 
-    def summary(self, dataset, csv_path, device=None):
+    def summary(self, dataset, csv_path):
 
         self.model.eval()
 
@@ -161,8 +161,8 @@ class Handler:
 
         for idx, (inputs, targets) in pbar:
 
-            images = inputs.to(device)
-            labels = targets.to(device).cpu()
+            images = inputs.to(self.device)
+            labels = targets.to(self.device).cpu()
 
             logits = self.model(images)
             predictions = torch.softmax(logits, dim=1).cpu().argmax(axis=-1)
