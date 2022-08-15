@@ -37,17 +37,17 @@ class Handler:
 
     def __init__(self, model, optimizer, num_classes, alpha=1.0, device=None):
 
+        self.device = device if device else get_device()
+
         self.num_classes = num_classes
 
-        self.model = model
+        self.model = model.to(self.device)
         self.optimizer = optimizer
 
         self.alpha = alpha
 
         self.loss_accum = LossAccumulator()
         self.cm = ConfusionMatrix(num_classes=num_classes)
-
-        self.device = device if device else get_device()
 
     # ================================================================================================================
 

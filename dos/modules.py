@@ -202,7 +202,7 @@ class DeepFeatureOverload(nn.Module):
 
             if yi not in groups:
 
-                groups[yi] = {}
+                groups[yi] = common.TorchDict({})
 
                 groups[yi]['x'] = []
                 groups[yi]['embeddings'] = []
@@ -242,7 +242,11 @@ class DeepFeatureOverload(nn.Module):
                 groups[yi]['neighbors'] = groups[yi]['embeddings'].unsqueeze(1)
                 groups[yi]['distances'] = torch.zeros((size, 1), dtype=torch.float32)
 
-        return groups
+        for yi in groups:
+
+            groups[yi] = groups[yi].to(device=x.device)
+
+        return common.TorchDict(groups).to(device=x.device)
 
     def forward(self, x, labels, embeddings, logits=None):
 

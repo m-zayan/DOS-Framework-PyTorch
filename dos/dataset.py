@@ -1,17 +1,59 @@
 import os
-
+from multiprocessing import cpu_count
+from tqdm import tqdm
 import numpy as np
 
-from torch.utils.data import Dataset, Subset
+from torch.utils.data import Dataset, Subset, DataLoader
 import torchvision
 
 
 # --------------------------------------------------------------------------------------------------------------------
 
+PARSE_CHUNK_SIZE = 16
+
 DATASET_DIR = os.getenv('DATASET_DIR')
 
+
+# --------------------------------------------------------------------------------------------------------------------
+
+def extend_loader(loader):
+
+    def load(**kwargs):
+
+        kwargs['split'] = 'train' if kwargs.get('train') else 'test'
+        kwargs.pop('train')
+
+        dataset = loader(**kwargs)
+
+        if not hasattr(dataset, 'targets'):
+
+            workers = cpu_count()
+
+            dataset_loader = DataLoader(dataset, batch_size=PARSE_CHUNK_SIZE, shuffle=True,
+                                        num_workers=workers, collate_fn=None)
+            targets = []
+
+            pbar = tqdm(dataset_loader)
+
+            for _, target in pbar:
+
+                targets.extend(target)
+
+                pbar.set_description('parse targets')
+
+            dataset.targets = targets
+            dataset.classes = np.unique(targets)
+
+        return dataset
+
+    return load
+
+# --------------------------------------------------------------------------------------------------------------------
+
+
 DATASET_LOADER = {'cifar10': torchvision.datasets.CIFAR10,
-                  'mnist': torchvision.datasets.MNIST}
+                  'mnist': torchvision.datasets.MNIST,
+                  'svhn': extend_loader(torchvision.datasets.SVHN)}
 
 # --------------------------------------------------------------------------------------------------------------------
 

@@ -4,20 +4,20 @@ from torch.nn import functional
 # -------------------------------------------------------------------------------------------------------------------
 
 
-def sample_unit_l1_weights(k):
+def sample_unit_l1_weights(k, device=None):
 
     weights = torch.rand(size=(1, k))
     weights = weights / weights.sum(dim=1)
 
-    return weights
+    return weights.to(device)
 
 # -------------------------------------------------------------------------------------------------------------------
 
 
 def micro_cluster_loss(groups):
 
-    total_loss = 0
-    total_aux_loss = 0
+    total_loss = torch.tensor(0.0, dtype=torch.float32, device=groups.device)
+    total_aux_loss = torch.tensor(0.0, dtype=torch.float32, device=groups.device)
 
     for yi in groups:
 
@@ -25,10 +25,10 @@ def micro_cluster_loss(groups):
 
         n, k = errors.shape[0:2]
 
-        weights = sample_unit_l1_weights(k)
+        weights = sample_unit_l1_weights(k, device=groups.device)
 
         logits = groups[yi]['logits']
-        y = torch.as_tensor([yi] * n, dtype=torch.long)
+        y = torch.as_tensor([yi] * n, dtype=torch.long).to(groups.device)
 
         p = torch.softmax(-weights * errors, dim=1)
 

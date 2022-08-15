@@ -90,3 +90,46 @@ def flatten_for_gather(tensor, axis, last=False, keepdims=False):
     return a
 
 # --------------------------------------------------------------------------------------------------------------------
+
+
+class TorchDict(dict):
+
+    def __init__(self, data):
+
+        super().__init__(data)
+
+        self.device = None
+
+    def to(self, device: torch.device):
+
+        self.device = device
+
+        for key in self:
+
+            if not isinstance(self[key], torch.Tensor):
+
+                continue
+
+            self[key] = self[key].to(device)
+
+        return self
+
+    def apply(self, fn, use_key=False, **kwargs):
+
+        for key in self:
+
+            if not isinstance(self[key], torch.Tensor):
+
+                continue
+
+            if use_key:
+
+                self[key] = fn(key, self[key], **kwargs)
+
+            else:
+
+                self[key] = fn(self[key], **kwargs)
+
+        return self
+
+# --------------------------------------------------------------------------------------------------------------------
